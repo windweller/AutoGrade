@@ -10,24 +10,25 @@ import os
 import util
 import matplotlib.pyplot as plt
 import time
+import subprocess
 
-FLYER_RES_H = 400
-FLYER_RES_W = 400
-FLYER_NUM_DISCRETE_ACTIONS = 16
+BOUNCE_RES_H = 400
+BOUNCE_RES_W = 400
+BOUNCE_NUM_DISCRETE_ACTIONS = 16
 
 KEYMAP = ["", "ArrowLeft", "ArrowUp", "ArrowLeft|ArrowUp",
-          "ArrowRight", "ArrowLeft|ArrowRight",
-          "ArrowUp|ArrowRight", "ArrowLeft|ArrowUp|ArrowRight",
           "ArrowDown", "ArrowLeft|ArrowDown",
           "ArrowUp|ArrowDown", "ArrowLeft|ArrowUp|ArrowDown",
-          "ArrowRight|ArrowDown", "ArrowLeft|ArrowRight|ArrowDown",
-          "ArrowUp|ArrowRight|ArrowDown", "ArrowLeft|ArrowUp|ArrowRight|ArrowDown"]
+          "ArrowRight", "ArrowLeft|ArrowRight",
+          "ArrowUp|ArrowRight", "ArrowLeft|ArrowUp|ArrowRight",
+          "ArrowDown|ArrowRight", "ArrowLeft|ArrowDown|ArrowRight",
+          "ArrowUp|ArrowDown|ArrowRight", "ArrowLeft|ArrowUp|ArrowDown|ArrowRight"]
 
 headers = {"Content-Type": "application/json"}
 
-class FlyerVecEnv(VecEnv):
+class BounceVecEnv(VecEnv):
 
-    def __init__(self, num_envs=1, js_filename="flyer1", pixel=True, frames=2,
+    def __init__(self, num_envs=1, js_filename="bounce1", pixel=True, frames=2,
                  tab_id=None, port=3300, spawn_process_manager=False,
                  server_path=None):
 
@@ -39,8 +40,8 @@ class FlyerVecEnv(VecEnv):
 
             self.app_id = np.base_repr(np.random.randint(36 ** 11, 36 ** 12), 36)
             subprocess.Popen(["pm2","start", server_path, "--name", self.app_id,
-                              "--", "-g", "flyer", "-p", str(port)])
-
+                              "--", "-g", "bounce", "-p", str(port)])
+                              
             self.process_manager_spawned = True
             time.sleep(3)
 
@@ -51,16 +52,17 @@ class FlyerVecEnv(VecEnv):
         self.tab_id = tab_id
 
         self.num_envs = num_envs
-        self.pixel    = pixel
+        self.pixel = pixel
 
         self.buf_rew  = np.zeros([num_envs], dtype=np.float32)
         self.buf_done = np.zeros([num_envs], dtype=np.bool)
         self.buf_info = [{} for _ in range(num_envs)]
-        self.score    = np.zeros([num_envs], dtype=np.float32)
-        self.coin_pos = np.zeros([num_envs, 2], dtype=np.float32)
+        self.score1   = np.zeros([num_envs], dtype=np.float32)
+        self.score2   = np.zeros([num_envs], dtype=np.float32)
 
 
-        action_space = gym.spaces.Discrete(FLYER_NUM_DISCRETE_ACTIONS)
+
+        action_space = gym.spaces.Discrete(BOUNCE_NUM_DISCRETE_ACTIONS)
 
         init_data = {"code":    js_filename,
                      "process": num_envs,
@@ -74,10 +76,10 @@ class FlyerVecEnv(VecEnv):
         self.closed = False
 
         if pixel:
-            self.buf_state = np.zeros([num_envs, FLYER_RES_H, FLYER_RES_W, 3],
+            self.buf_state = np.zeros([num_envs, BOUNCE_RES_H, BOUNCE_RES_W, 3],
                                       dtype=np.uint8)
             obs_space = gym.spaces.Box(low=0, high=255,
-                                       shape=[FLYER_RES_H, FLYER_RES_W, 3],
+                                       shape=[BOUNCE_RES_H, BOUNCE_RES_W, 3],
                                        dtype=np.uint8)
         else:
             num_objects = len(response.json()[0]["state"]["sprites"])
@@ -95,38 +97,23 @@ class FlyerVecEnv(VecEnv):
         for i in envs:
             if not reset and self.buf_done[i]:
                 continue
+
             state = new_states[i]
+
             if self.pixel:
                 self.buf_state[i] = util.jpg_b64_to_rgb(state["img"])
             else:
                 sprites = [(c["animationLabel"],c["x"],c["y"]) for c in state["state"]["sprites"]]
                 self.buf_state[i] = np.array([[c[1], c[2]] for c in sorted(sprites)])
 
-            if reset:
-                self.buf_rew[i] = 0
-                self.buf_done[i] = 0
-                self.score[i] = 0
-                for c in state["state"]["sprites"]:
-                    if c["animationLabel"] == "coin":
-                        self.coin_pos[i] = [c["x"], c["y"]]
-                continue
+            old_s1, old_s2 = self.score1[i], self.score2[i]
+            s1, s2 = state["state"]["scores"]
+            self.buf_rew[i] = (s1-s2) - (self.score1[i]-self.score2[i])\
+                              if not reset else 0
 
-            self.buf_rew[i] = 0
-            for c in state["state"]["sprites"]:
-                if c["animationLabel"] == "coin":
-                    new_pos = [c["x"], c["y"]]
-                    if not np.allclose(self.coin_pos[i], new_pos, atol=1e-4):
-                        self.coin_pos[i] = new_pos
-                        self.buf_rew[i] = 1
-                        self.score[i] += 1
-                elif c["animationLabel"] == "fly_bot":
-                    print(i, c["x"], c["y"])
-            self.buf_info[i]["score"] = self.score[i]
-            for c in state["state"]["texts"]:
-                if c["text"] == "Game Over!":
-                    self.buf_done[i] = 1
-                    break
-
+            self.score1[i], self.score2[i] = s1, s2
+            self.buf_info[i]['score1'] = s1
+            self.buf_info[i]['score2'] = s2
 
     def reset(self, envs_to_reset=None):
 
@@ -156,13 +143,14 @@ class FlyerVecEnv(VecEnv):
         return self.buf_state
 
     def close(self):
-        requests.post("http://localhost:{}/close/{}".format(self.port, self.tab_id), headers=headers)
+        if not self.closed:
+            requests.post("http://localhost:{}/close/{}".format(self.port, self.tab_id), headers=headers)
         self.closed = True
 
     def render(self, i=None):
         assert self.pixel
         if i is None:
-            plt.imshow(self.buf_state.reshape(-1, FLYER_RES_W, 3))
+            plt.imshow(self.buf_state.reshape(-1, BOUNCE_RES_W, 3))
         else:
             plt.imshow(self.buf_state[i])
         plt.show()
@@ -175,6 +163,7 @@ class FlyerVecEnv(VecEnv):
             subprocess.Popen(["pm2","stop", self.app_id])
             subprocess.Popen(["pm2","delete", self.app_id])
         time.sleep(3)
+
 
     def get_attr(self, attr_name, indices=None):
         pass

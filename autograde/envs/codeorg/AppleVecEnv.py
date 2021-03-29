@@ -20,10 +20,28 @@ headers = {"Content-Type": "application/json"}
 class AppleVecEnv(VecEnv):
 
     def __init__(self, num_envs=1, js_filename="apple1", pixel=True,
-                 mouse_action=True, scale_action=False):
+                 mouse_action=True, scale_action=False, tab_id=None,
+                 port=3300, spawn_process_manager=False,
+                 server_path=None):
 
+        self.closed = True
         assert (mouse_action) or (not scale_action)
-        # group number of observations together
+
+        if spawn_process_manager:
+            if server_path is None:
+                server_path = os.path.join(os.getcwd(), "code-org", "src", "main.js")
+
+            self.app_id = np.base_repr(np.random.randint(36 ** 11, 36 ** 12), 36)
+            subprocess.Popen(["pm2","start", server_path, "--name", self.app_id,
+                              "--", "-g", "apple", "-p", str(port)])
+
+            self.process_manager_spawned = True
+            time.sleep(3)
+
+        assert type(tab_id) == int and tab_id >= 0
+
+        self.port = port
+        self.tab_id = tab_id
 
         self.num_envs = num_envs
         self.pixel = pixel
@@ -35,7 +53,6 @@ class AppleVecEnv(VecEnv):
         self.buf_info = [{} for _ in range(num_envs)]
         self.score    = np.zeros([num_envs], dtype=np.float32)
         self.lives     = np.zeros([num_envs], dtype=np.int32)
-        self.closed = False
 
 
         if self.mouse_action:
@@ -54,11 +71,11 @@ class AppleVecEnv(VecEnv):
                      "process": num_envs,
                      "format":  "img|state" if pixel else "state"}
 
-        response = requests.post("http://localhost:3300/init/1",
+        response = requests.post("http://localhost:{}/init/{}".format(self.port, self.tab_id),
                                   headers=headers,
                                   data=json.dumps(init_data))
 
-
+        self.closed = False
 
         if pixel:
             self.buf_state = np.zeros([num_envs, APPLE_RES_H, APPLE_RES_W, 3],
@@ -96,7 +113,7 @@ class AppleVecEnv(VecEnv):
                     self.score[i] = s
                 elif c["id"] == "lives_label":
                     self.lives[i] = int(c["text"])
-                    self.buf_done[i] = (self.lives[i] < 0)
+                    self.buf_done[i] = int(self.lives[i] < 0)
 
                 self.buf_info[i]['score'] = self.score[i]
                 self.buf_info[i]['lives'] = self.lives[i]
@@ -104,7 +121,7 @@ class AppleVecEnv(VecEnv):
     def reset(self, envs_to_reset=None):
 
         reset_data = {"actions": envs_to_reset} if envs_to_reset is not None else {}
-        new_states = requests.post("http://localhost:3300/reset/1",
+        new_states = requests.post("http://localhost:{}/reset/{}".format(self.port, self.tab_id),
                                    headers=headers,
                                    data=json.dumps(reset_data)).json()
         if envs_to_reset is None:
@@ -127,7 +144,7 @@ class AppleVecEnv(VecEnv):
         else:
             step_data = {"actions":[{"grid": int(a)} for a in actions]}
 
-        new_states = requests.post("http://localhost:3300/step/1",
+        new_states = requests.post("http://localhost:{}/step/{}".format(self.port, self.tab_id),
                                    headers=headers,
                                    data=json.dumps(step_data)).json()
         self._apply_tick_func(new_states, range(self.num_envs), reset=False)
@@ -141,7 +158,8 @@ class AppleVecEnv(VecEnv):
         return self.buf_state
 
     def close(self):
-        requests.post("http://localhost:3300/close/1", headers=headers)
+        if not self.closed:
+            requests.post("http://localhost:{}/close/{}".format(self.port, self.tab_id), headers=headers)
         self.closed = True
 
     def render(self, i=None):
@@ -155,6 +173,11 @@ class AppleVecEnv(VecEnv):
     def __del__(self):
         if not self.closed:
             self.close()
+        if self.process_manager_spawned:
+            requests.post("http://localhost:{}/stop".format(self.port), headers=headers)
+            subprocess.Popen(["pm2","stop", self.app_id])
+            subprocess.Popen(["pm2","delete", self.app_id])
+        time.sleep(3)
 
     def get_attr(self, attr_name, indices=None):
         pass

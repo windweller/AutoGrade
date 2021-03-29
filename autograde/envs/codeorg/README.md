@@ -10,11 +10,13 @@
 
 ## Usage
 
-Refer to example here(under construction)
+Before running the script
 
-Before running the script, cd to the root directory of `code-org` game repos, build with `yarn install` and tell `pm2` to spawn the NodeJS server for the game.
-
-`$ pm2 start ./src/main.js --name "game-env-1" -- -g frog`
+```
+cd code-org
+yarn install
+pm2 start ./src/main.js --name "game-env-1" -- -g bounce
+```
 
 After finishing, stop and delete the process.
 
@@ -22,9 +24,7 @@ After finishing, stop and delete the process.
 
 `$ pm2 delete game-env-1`
 
-Note: In current version, port number 3300 is hardcoded, and the batch number is fixed to 1. This will soon change.
-
-Note2: We can also automate the "telling `pm2`" in python. This may later be implemented.
+Alternatively, but strongly advised against for many reasons, execute a `pm2` command invocation from inside the python class constructor.
 
 All 4 game instances are subclass of `baselines.common.vec_env.VecEnv` with
 the following methods
