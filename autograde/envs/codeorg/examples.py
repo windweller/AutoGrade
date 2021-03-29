@@ -8,7 +8,7 @@ import numpy as np
 # from ColorVecEnv import ColorVecEnv
 # env = ColorVecEnv(num_envs=2, pixel=True, mouse_action=True, scale_action=False)
 
-from BounceVecEnv import BounceVecEnv
+from .BounceVecEnv import BounceVecEnv
 env = BounceVecEnv(num_envs=2, pixel=True, spawn_process_manager=True, port=13459, tab_id=1)
 
 # from FlyerVecEnv import FlyerVecEnv

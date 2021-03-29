@@ -7,9 +7,9 @@ import numpy as np
 import requests
 import json
 import os
-import util
 import matplotlib.pyplot as plt
 import time
+import autograde.envs.codeorg.util as util
 import subprocess
 
 BOUNCE_RES_H = 400
@@ -36,7 +36,7 @@ class BounceVecEnv(VecEnv):
 
         if spawn_process_manager:
             if server_path is None:
-                server_path = os.path.join(os.getcwd(), "code-org", "src", "main.js")
+                server_path = os.path.join(os.getcwd(), "server", "src", "main.js")
 
             self.app_id = np.base_repr(np.random.randint(36 ** 11, 36 ** 12), 36)
             subprocess.Popen(["pm2","start", server_path, "--name", self.app_id,
@@ -59,8 +59,6 @@ class BounceVecEnv(VecEnv):
         self.buf_info = [{} for _ in range(num_envs)]
         self.score1   = np.zeros([num_envs], dtype=np.float32)
         self.score2   = np.zeros([num_envs], dtype=np.float32)
-
-
 
         action_space = gym.spaces.Discrete(BOUNCE_NUM_DISCRETE_ACTIONS)
 

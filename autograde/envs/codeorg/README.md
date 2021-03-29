@@ -1,5 +1,13 @@
 # OpenAI gym wrapper around node.js games environment server
 
+Flyer game: https://studio.code.org/s/csd3-2020/stage/23/puzzle/2 
+
+Frog jump: https://studio.code.org/s/csd3-2020/stage/20/puzzle/2 
+
+Color Sleuth: https://studio.code.org/s/csp5-virtual/stage/10/puzzle/1 
+
+Apple Grab: https://studio.code.org/s/csp5-virtual/stage/5/puzzle/1 
+
 ### Requirements
 * `python==3.7.x`
 * `tensorflow==1.14`

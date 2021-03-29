@@ -7,7 +7,8 @@ import numpy as np
 import requests
 import json
 import os
-import util
+import autograde.envs.codeorg.util as util
+import subprocess
 import matplotlib.pyplot as plt
 import time
 
@@ -29,7 +30,7 @@ class AppleVecEnv(VecEnv):
 
         if spawn_process_manager:
             if server_path is None:
-                server_path = os.path.join(os.getcwd(), "code-org", "src", "main.js")
+                server_path = os.path.join(os.getcwd(), "server", "src", "main.js")
 
             self.app_id = np.base_repr(np.random.randint(36 ** 11, 36 ** 12), 36)
             subprocess.Popen(["pm2","start", server_path, "--name", self.app_id,
