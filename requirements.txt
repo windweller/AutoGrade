@@ -1,0 +1,5 @@
+dotmap
+wandb
+sklearn
+pandas==1.1.4
+cloudpickle
