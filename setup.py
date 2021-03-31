@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name='AutoGrade',
+    name='autograde',
     version='0.1dev',
     packages=['autograde',],
 )

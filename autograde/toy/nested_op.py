@@ -2,11 +2,11 @@ import numpy as np
 from gym.utils import seeding
 import math
 import matplotlib.pyplot as plt
-from maze import MazeWorldSmall, MazeClassifierWrapper
-from gen_programs import get_broken_programs
+from .maze import MazeWorldSmall, MazeClassifierWrapper
+from .gen_programs import get_broken_programs
 
-from q_learning import TabularQLearningAgent, train, execute_agent_collect_data
-from classifiers import MLPTotalRewardClassifier, LogisticRewardClassifier
+from .q_learning import TabularQLearningAgent, train, execute_agent_collect_data
+from .classifiers import MLPTotalRewardClassifier, LogisticRewardClassifier
 
 def surrogate_nested_optimization(broken_program, agent=None, classifier=None, pretrain_agent=True, number_epochs=50,
                         collection_eps=0., batch_size=5):

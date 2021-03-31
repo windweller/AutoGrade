@@ -3,7 +3,7 @@ We use this to generate programs
 """
 
 import random
-from maze import GAME_FAIL_BUG, GAME_CRASH_BUG, GAME_HALT_BUG, GAME_REWARD_BUG
+from .maze import GAME_FAIL_BUG, GAME_CRASH_BUG, GAME_HALT_BUG, GAME_REWARD_BUG
 
 random.seed(15123)
 
