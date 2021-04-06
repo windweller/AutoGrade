@@ -1,5 +1,6 @@
 import ideaToText
 import os
+
 # we are only going to use this to generate options
 # we collect these options, save them into list or JSON
 # then use a boilerplate expansion like script to generate a JS file
@@ -12,7 +13,7 @@ decision_to_snippet = {'dec1': "{...xxx...}"}
 
 if __name__ == '__main__':
     # you can make a sampler based on an ideaToText grammar
-    sampler = ideaToText.Sampler(os.path.join('grammars', 'AppleGrab'))
+    sampler = ideaToText.Sampler(os.path.join('grammars', 'FlyerGame'))
 
     # once you have a sampler, you can draw samples
     sample = sampler.singleSample()
