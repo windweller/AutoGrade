@@ -18,6 +18,8 @@ class Start(Decision):
     def render(self):
         blocks = []
 
+        # var currentPlayer = 1;
+
         # var p1Score = 0;
         code = self.expand('CreatePlayerScore', params={'player_num': 1})
         blocks.append(code)
@@ -25,6 +27,10 @@ class Start(Decision):
         # var p2Score = 0;
         code = self.expand('CreatePlayerScore', params={'player_num': 2})
         blocks.append(code)
+
+        # var randButtonId;
+
+        # setBoard();
 
         return "".join(blocks)
 
