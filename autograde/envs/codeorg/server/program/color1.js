@@ -1,75 +1,75 @@
-var current = 1;
-var bug;
+var currentPlayer = 1;
+var p1Score=0;
+var p2Score=0;
 
-function setPlayer() {
-  if (current == 1) {
-    setProperty(
-      "player1_highlight",
-      "background-color",
-      rgb(197, 197, 197, 0.408)
-    );
-    setProperty(
-      "player2_highlight",
-      "background-color",
-      rgb(197, 197, 197, 0)
-    );
+var randButtonId;
+setBoard();
+
+function updateScoreBy(amt){
+    if(currentPlayer == 1){
+        p1Score = p1Score + amt;
+    } else {
+        p2Score = p2Score + amt;
+    }
+    setText("score1_label", p1Score);
+    setText("score2_label", p2Score);
+}
+
+function switchPlayer(){
+  if(currentPlayer==1){
+    currentPlayer=2;
+    showElement("player2_highlight");
+    hideElement("player1_highlight");
   } else {
-    setProperty(
-      "player2_highlight",
-      "background-color",
-      rgb(197, 197, 197, 0.408)
-    );
-    setProperty(
-      "player1_highlight",
-      "background-color",
-      rgb(197, 197, 197, 0)
-    );
+    currentPlayer=1;
+    showElement("player1_highlight");
+    hideElement("player2_highlight");
   }
 }
 
-function setColor(init) {
-  var r = randomNumber(0, 255);
-  var g = randomNumber(0, 255);
-  var b = randomNumber(0, 255);
-  var color1 = rgb(r, g, b, 1);
-  var color2 = rgb(r, g, b, 0.5);
+function setBoard() {
+  var R = randomNumber(0, 235);
+  var G = randomNumber(0, 235);
+  var B = randomNumber(0, 235);
+  var color = rgb(R, G, B)
 
-  bug = randomNumber(1, 4);
+  R += 20;
+  G += 20;
+  B += 20;
 
-  setProperty("button1", "background-color", color1);
-  setProperty("button2", "background-color", color1);
-  setProperty("button3", "background-color", color1);
-  setProperty("button4", "background-color", color1);
-  setProperty("button" + bug, "background-color", color2);
+  var diffColor = rgb(R, G, B);
+
+  randButtonId = "button" + randomNumber(1,4);
+
+  setProperty("button1", "background-color", color);
+  setProperty("button2", "background-color", color);
+  setProperty("button3", "background-color", color);
+  setProperty("button4", "background-color", color);
+  setProperty(randButtonId, "background-color", diffColor);
 }
 
-setColor();
-setPlayer();
-
-function onEnt(id) {
-  onEvent("button" + id, "click", function () {
-    var score = getNumber("score" + current + "_label");
-
-    if (bug == id) {
-      score = score + 1;
+function checkCorrect(buttonId){
+    if(buttonId == randButtonId) {
+    	updateScoreBy(1)
     } else {
-      score = score - 3;
+    	updateScoreBy(-3)
     }
-
-    setNumber("score" + current + "_label", score);
-
-    if (current == 1) {
-      current = 2;
-    } else {
-      current = 1;
-    }
-
-    setColor();
-    setPlayer();
-  });
+    setBoard();
+    switchPlayer();
 }
 
-onEnt(1);
-onEnt(2);
-onEnt(3);
-onEnt(4);
+onEvent("button1", "click", function(){
+    checkCorrect("button1");
+});
+
+onEvent("button2", "click", function(){
+    checkCorrect("button2");
+});
+
+onEvent("button3", "click", function(){
+    checkCorrect("button3");
+});
+
+onEvent("button4", "click", function(){
+    checkCorrect("button4");
+});
