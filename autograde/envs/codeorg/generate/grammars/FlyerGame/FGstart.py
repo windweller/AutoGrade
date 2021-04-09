@@ -1,34 +1,30 @@
 import string
 from ideaToText import Decision
+import random
 
 class Start(Decision):
-	def registerChoices(self):
-		self.addChoice('player', {
-			# Choices
-		})
-
-	 def updateRubric(self):
-	 	
-
-	 def render(self):
-	 	#TODO: Replace template with FlyerGame Template
-	 	template = """
-		// GAME SETUP
-		// create player, target, and obstacles
-		var player = createSprite(200, 100);
-		player.setAnimation("fly_bot");
-		player.scale = 0.8;
-		player.velocityY = 4;
-		"""
-
+	#def registerChoices(self):
+	#def updateRubric(self):
+	def render(self):
+		#TODO: Replace template with FlyerGame Template as necessary
 		blocks = []
+		# 1. Player setup
+		player_code = self.expand('Player')
+		blocks.append(player_code)
 
-		# 1. Create player
-		player = self.getChoice("player")
-        player_code = self.expand(player)
-        blocks.append(player)
+		# 2. Coin setup
+		coin_code = self.expand('Coin')
+		blocks.append(coin_code)
 
-        random.shuffle(blocks)
+		# 3. RockX setup
+		rockX_code = self.expand('RockX')
+		blocks.append(rockX_code)
 
-        return "".join(blocks)
+		# 3. RockY setup
+		rockY_code = self.expand('RockY')
+		blocks.append(rockY_code)
+
+		random.shuffle(blocks)
+
+		return ''.join(blocks)
 
