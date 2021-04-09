@@ -150,7 +150,6 @@ class BkgFixedNumber(Decision):
     # def updateRubric(self):
     #     if self.params['pos'] == 1 or self.params['pos'] == 2:
     #         self.turnOnRubric('Apple should randomly appear, not always in a fixed place')
-
     def render(self):
         return self.getChoice('BkgClickNewFixedPos{}'.format(self.params['pos']))
 
