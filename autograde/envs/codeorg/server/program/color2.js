@@ -48,26 +48,12 @@ function setBoard() {
   setProperty(randButtonId, "background-color", diffColor);
 }
 
-function checkGameOver() {
-  if (p1Score == 5) {
-    showElement("player1Win_label");
-    hideElement("player2Win_label");
-    setScreen("gameOver_screen");
-  }
-  if (p2Score == 5) {
-    showElement("player2Win_label");
-    hideElement("player1Win_label");
-    setScreen("gameOver_screen");
-  }
-}
-
 function checkCorrect(buttonId){
     if(buttonId == randButtonId) {
     	updateScoreBy(1)
     } else {
     	updateScoreBy(-3)
     }
-    checkGameOver();
     setBoard();
     switchPlayer();
 }
