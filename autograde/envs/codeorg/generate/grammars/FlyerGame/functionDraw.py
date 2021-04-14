@@ -11,42 +11,48 @@ function draw() {
 // Sprite Interactions
 }
 """
-def Draw(self):
-	def registerChoices(self):
+class Draw(Decision):
+    def registerChoices(self):
+        return
 
-	#def updateRubric(self):
+    def updateRubric(self):
+        return
 
-	def render(self):
-		# Generate decisions
+    def render(self):
+        # Generate decisions
+        blocks = []
 
-		blocks = []
+        # Append each decision code block to blocks.
+        #draw_function_name = self.expand('DrawFunctionName') = {DrawFunctionName}
+        draw_function_code = "function {DrawFunctionName}() {{ \n\n"
+        blocks.append(draw_function_code)
 
-		# Append each decision code block to blocks.
-		draw_function_name = self.expand('DrawFunctionName')
-		draw_function_code = f"function {draw_function_name}() {{ \n"
-		blocks.append(draw_function_code)
+        sub_blocks = []
+        rock_loop_code = self.expand('RockLoop')
+        sub_blocks.append(rock_loop_code)
 
-		sub_blocks = []
-		falling_code = self.expand('Falling')
-		sub_blocks.append(falling_code)
+        player_controls_code = self.expand('PlayerControls')
+        sub_blocks.append(player_controls_code)
 
-		player_controls_code = self.expand('PlayerControls')
-		sub_blocks.append(player_controls_code)
+        sprite_interactions_code = self.expand('SpriteInteractions')
+        sub_blocks.append(sprite_interactions_code)
 
-		sprite_interactions_code = self.expand('SpriteInteractions')
-		sub_blocks.append(sprite_interactions_code)
+        random.shuffle(sub_blocks)
+        blocks.extend(sub_blocks)
+        
+        blocks.append('\t// Draw Sprites\n')
+        blocks.append('\tdrawSprites(); \n\n')
+        blocks.append('\t// Game Over\n')
+        blocks.append(self.expand('GameOver'))
 
-		random.shuffle(sub_blocks)
-		blocks.extend(sub_blocks)
-		
-		blocks.append(f"}}")
-		return ''.join(blocks)
+        blocks.append("}} \n\n")
+        return ''.join(blocks)
 
-def DrawFunctionName(self):
-	def registerChoices(self):
+class DrawFunctionName(Decision):
+    def registerChoices(self):
         values = {}
         for _ in range(20):
-        	# NOTE: Consider coding this up to generate names in lower camel-case instead.
+            # NOTE: Consider coding this up to generate names in lower camel-case instead.
             name = ''.join(random.choices(string.ascii_lowercase, k=15))
             values[name] = 2
 

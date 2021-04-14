@@ -10,7 +10,8 @@ player.scale = {scale};
 player.velocityX = {velocityX};
 player.velocityY = {velocityY};
 """
-class Sprite(Decision):
+"""
+class Player(Decision):
 	def registerChoices(self):
 		# TODO: Study appropriate ranges, anticipate student mistakes, adjust rubric accordingly.
 		self.addChoice('x_coord', dict(
@@ -95,3 +96,4 @@ class Sprite(Decision):
 		blocks.append(player_velocityY_code)
 
 		return ''.join(blocks)
+"""

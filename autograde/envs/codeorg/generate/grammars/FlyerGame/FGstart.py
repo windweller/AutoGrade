@@ -24,6 +24,10 @@ class Start(Decision):
 		rockY_code = self.expand('RockY')
 		blocks.append(rockY_code)
 
+		# 4. function draw()
+		draw_function_code = self.expand('Draw')
+		blocks.append(draw_function_code)
+
 		random.shuffle(blocks)
 
 		return ''.join(blocks)

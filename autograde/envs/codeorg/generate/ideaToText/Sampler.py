@@ -170,5 +170,4 @@ class Sampler:
                 import pdb; pdb.set_trace()
             formatter[format_key] = self._render(symbol_to_gen)
         curr._setParams({}) # clear params
-
         return render.format(**formatter)
